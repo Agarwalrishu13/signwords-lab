@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>SignWords Lab</title>
+  <link rel="preload" href="assets/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/icons/phosphor.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><h1>SignWords Lab</h1><p>Your personal sign studio</p></div>
+      <nav class="steps" id="steps" aria-label="Sign model workflow" role="tablist" aria-orientation="vertical">
+        <button id="tab-data" class="step active" data-tab="data" role="tab" aria-selected="true" aria-controls="panel-data"><i class="ph ph-hand-palm" aria-hidden="true"></i><b>Collect data</b><small id="stepDataInfo">0 words · 0 clips</small></button>
+        <button id="tab-train" class="step" data-tab="train" role="tab" aria-selected="false" aria-controls="panel-train" tabindex="-1"><i class="ph ph-stack" aria-hidden="true"></i><b>Train model</b><small id="stepTrainInfo">not trained</small></button>
+        <button id="tab-live" class="step" data-tab="live" role="tab" aria-selected="false" aria-controls="panel-live" tabindex="-1"><i class="ph ph-waveform" aria-hidden="true"></i><b>Detect &amp; speak</b><small id="stepLiveInfo">stopped</small></button>
+      </nav>
+      <div class="sidebar-note"><i class="ph ph-shield-check" aria-hidden="true"></i><div><b>A private workspace</b><p>Your clips and model stay on this device.</p></div></div>
+    </aside>
+
+    <main id="workspace" class="workspace" data-view="data" tabindex="-1">
+      <header class="workspace-header">
+        <div><h2 id="workspaceTitle">Collect data</h2><p id="workspaceDescription">A few words. A few examples. A vocabulary that's yours.</p></div>
+        <span class="local-note"><i class="ph ph-lock-simple" aria-hidden="true"></i>Stored in this browser</span>
+      </header>
+
+      <div class="layout">
+        <section class="col-cam" aria-labelledby="cameraHeading">
+          <div class="camera-heading"><h2 id="cameraHeading">Camera</h2><span>Both hands, in view</span></div>
+          <div class="stage">
+            <div class="camera-empty" id="cameraEmpty">
+              <img class="gesture-photo" src="assets/gesture-study.jpg" width="1254" height="1254" alt="" fetchpriority="high">
+              <div class="camera-empty-copy"><i class="ph ph-video-camera" aria-hidden="true"></i><h3>It starts with a sign.</h3><p>Turn on your camera to make this space yours.</p></div>
+            </div>
+            <video id="video" playsinline muted aria-label="Mirrored camera preview"></video>
+            <canvas id="canvas" aria-label="Hand tracking overlay"></canvas>
+            <div class="badges"><span class="badge" id="fpsBadge">- fps</span><span class="badge" id="handBadge">no hands</span></div>
+            <div class="overlay-msg" id="overlayMsg" aria-live="assertive"></div>
+          </div>
+          <div class="camera-controls">
+            <button id="startBtn" class="primary">Start camera</button>
+            <div class="sequence-control"><div class="sequence-label"><span>Sequence window</span><span>1.2 sec</span></div><div class="bar"><div id="bufferBar"></div></div></div>
+          </div>
+          <div class="stage-status" id="camStatus" role="status">Camera is off.</div>
+
+          <section class="recording-dock" id="recordingDock" aria-labelledby="recordingHeading">
+            <div class="recording-header"><div><h2 id="recordingHeading">Record clips</h2><p>Recording for <span id="selLabel">No sign (idle)</span></p></div><span class="clip-duration">1.2s per clip</span></div>
+            <div class="row record-actions"><button id="rec1Btn" class="primary"><i class="ph ph-record" aria-hidden="true"></i>Record 1 clip</button><button id="rec10Btn">Record 10 clips (auto)</button><button id="recCancelBtn" hidden>Cancel</button></div>
+            <details class="recording-guide"><summary>How to record a good clip</summary><p>After the 3-2-1 beeps, perform the sign during “GO!”. Aim for about 30 clips per word. Vary your speed and hand position between clips. Both hands are tracked: teal is right, amber is left.</p></details>
+          </section>
+          <p class="camera-footnote"><i class="ph ph-lock-simple" aria-hidden="true"></i>Camera, hand tracking, and training run locally. Nothing is uploaded.</p>
+        </section>
+
+        <section class="col-main" aria-label="Workflow controls">
+          <div class="panel active" id="panel-data" role="tabpanel" aria-labelledby="tab-data" tabindex="0">
+            <div class="section-heading"><h2>Vocabulary</h2><span class="count-label" id="dataTotal">0 clips</span></div>
+            <p class="section-description">The words your model will learn.</p>
+            <label class="input-label" for="wordInput">Add a word or phrase</label>
+            <div class="addrow"><input id="wordInput" type="text" maxlength="30" placeholder="Hello, Thank you, Water..." aria-describedby="vocabularyHint" autocomplete="off"><button id="addWordBtn" class="primary">Add word</button></div>
+            <div id="wordList" class="wordlist" aria-label="Your vocabulary"></div>
+            <div id="vocabularyEmpty" class="vocabulary-empty"><i class="ph ph-book-open-text" aria-hidden="true"></i><h3>Add your first word</h3><p>Choose something you say every day. Then record a few examples of your sign.</p></div>
+            <details class="idle-guide"><summary>Why record “No sign”?</summary><p class="hint" id="vocabularyHint">“No sign (idle)” teaches the model what <i>not signing</i> looks like. Record a few clips with your hands resting or leaving the frame.</p></details>
+            <div class="dataset-tools">
+              <h3>Your dataset</h3><p>Keep a backup or bring your clips with you.</p>
+              <div class="row"><button id="exportBtn"><i class="ph ph-download-simple" aria-hidden="true"></i>Export dataset</button><button id="importBtn"><i class="ph ph-upload-simple" aria-hidden="true"></i>Import dataset</button><input type="file" id="importFile" accept="application/json" aria-label="Import dataset file" hidden></div>
+              <button id="clearAllBtn" class="text-button danger">Delete everything</button>
+            </div>
+          </div>
+
+          <div class="panel" id="panel-train" role="tabpanel" aria-labelledby="tab-train" tabindex="0">
+            <div class="section-heading"><h2>Dataset check</h2><i class="ph ph-stack" aria-hidden="true"></i></div>
+            <div class="stats summary-stats"><div><small>Classes</small><b id="sumClasses">0</b></div><div><small>Clips</small><b id="sumSamples">0</b></div><div><small>Model</small><b id="modelBadge">none</b></div></div>
+            <p class="warn" id="sumWarn" role="status"></p>
+            <section class="settings-section">
+              <h2>Training settings</h2>
+              <div class="settings training-settings">
+                <label>Epochs <input id="epochs" type="number" min="5" max="300" value="40"></label>
+                <label>Batch size <select id="batch"><option>8</option><option selected>16</option><option>32</option></select></label>
+                <label>Learning rate <select id="lr"><option value="0.003">0.003</option><option value="0.001" selected>0.001</option><option value="0.0003">0.0003</option></select></label>
+                <label>Augmentation <select id="augment"><option value="0">Off</option><option value="2">×3 data</option><option value="4" selected>×5 data</option></select></label>
+              </div>
+              <div class="row"><button id="trainBtn" class="primary">Train model</button><button id="stopBtn" disabled>Stop</button></div>
+              <div class="bar big-bar"><div id="trainBar"></div></div>
+              <div class="stats training-metrics"><div><small>Epoch</small><b id="mEpoch">-</b></div><div><small>Loss</small><b id="mLoss">-</b></div><div><small>Accuracy</small><b id="mAcc">-</b></div><div><small>Val. accuracy</small><b id="mValAcc">-</b></div><div><small>ETA</small><b id="mEta">-</b></div></div>
+            </section>
+            <details class="technical-details"><summary>Model architecture <span id="archTotal"></span></summary><div id="archList" class="arch"></div></details>
+            <section class="results-section"><h2>Learning curves</h2><div class="charts"><canvas id="chartLoss" role="img" aria-label="Training and validation loss by epoch"></canvas><canvas id="chartAcc" role="img" aria-label="Training and validation accuracy by epoch"></canvas></div></section>
+            <details class="technical-details"><summary>Training log</summary><div id="log" class="log" role="log" aria-label="Training log"></div></details>
+            <section class="results-section"><h2>Confusion matrix</h2><p class="hint matrix-hint">Held-out clips: rows are true, columns are predicted.</p><div id="confusion" class="confusion"><p class="hint">Appears after training.</p></div></section>
+          </div>
+
+          <div class="panel" id="panel-live" role="tabpanel" aria-labelledby="tab-live" tabindex="0">
+            <div class="section-heading"><h2>Live detection</h2><i class="ph ph-waveform" aria-hidden="true"></i></div>
+            <p class="section-description" id="modelStatus">no model yet</p>
+            <div class="row"><button id="liveToggle" class="primary">Start detecting</button></div>
+            <div class="liveword" aria-live="polite"><div id="liveWord">-</div><small id="liveConf">stopped</small></div>
+            <div id="probList" class="probs"></div>
+            <label class="inline">Confidence needed <input type="range" id="threshold" min="50" max="99" value="80"><span id="thresholdVal">80%</span></label>
+            <section class="sentence-section"><h2>Detected sentence</h2><div class="transcript" id="transcript" aria-live="polite"><span class="muted">Words you sign appear here, each followed by a space.</span></div><div class="row sentence-actions"><button id="speakAllBtn"><i class="ph ph-speaker-high" aria-hidden="true"></i>Speak sentence</button><button id="undoBtn">Undo word</button><button id="clearTextBtn">Clear</button><button id="copyBtn">Copy</button></div></section>
+            <section class="audio-section"><h2>Audio</h2><div class="settings audio-settings"><label class="wide2">Voice <select id="voiceSelect"></select></label><label>Speed <input type="range" id="rate" min="0.6" max="1.6" step="0.1" value="1"><span id="rateVal">1.0×</span></label><label>Volume <input type="range" id="volume" min="0.1" max="1" step="0.1" value="1"></label></div><div class="audio-options"><label class="check"><input type="checkbox" id="autoSpeak" checked> Speak each word when detected</label><label class="check"><input type="checkbox" id="chimeOn" checked> Beeps &amp; chimes</label><button id="testVoiceBtn">Test voice</button></div></section>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div id="toast" role="status"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

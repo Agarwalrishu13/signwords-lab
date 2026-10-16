@@ -1,0 +1,29 @@
+@font-face {
+  font-family: Phosphor;
+  src: url('./Phosphor.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+.ph {
+  font-family: Phosphor !important;
+  font-style: normal;
+  font-weight: 400;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+.ph-book-open-text::before { content: '\e8f2'; }
+.ph-chat-text::before { content: '\e17a'; }
+.ph-download-simple::before { content: '\e20c'; }
+.ph-hand-palm::before { content: '\e57e'; }
+.ph-lock-simple::before { content: '\e308'; }
+.ph-record::before { content: '\e3ee'; }
+.ph-shield-check::before { content: '\e40c'; }
+.ph-speaker-high::before { content: '\e44a'; }
+.ph-stack::before { content: '\e466'; }
+.ph-upload-simple::before { content: '\e4c0'; }
+.ph-video-camera::before { content: '\e4da'; }
+.ph-waveform::before { content: '\e802'; }

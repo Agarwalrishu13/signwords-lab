@@ -1,0 +1,17 @@
+node_modules/
+.test-tools/
+test-results/
+__pycache__/
+*.pyc
+# Junk your computer and your editor leave lying around.
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.tmp
+.idea/
+.vscode/
+# Junk Python leaves when it runs.
+*.py[cod]
+.venv/
+venv/
